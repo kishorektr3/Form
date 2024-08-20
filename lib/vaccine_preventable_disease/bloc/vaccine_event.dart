@@ -1,10 +1,20 @@
-abstract class VaccineEvent {}
+import 'package:equatable/equatable.dart';
 
-class UpdateVaccineField extends VaccineEvent {
-  final String fieldName;
-  final String fieldValue;
+abstract class VaccineEvent extends Equatable {
+  const VaccineEvent();
 
-  UpdateVaccineField(this.fieldName, this.fieldValue);
+  @override
+  List<Object> get props => [];
 }
 
-class SubmitVaccineForm extends VaccineEvent {}
+class UpdateField extends VaccineEvent {
+  final String fieldName;
+  final dynamic fieldValue;
+
+  UpdateField(this.fieldName, this.fieldValue);
+
+  @override
+  List<Object> get props => [fieldName, fieldValue];
+}
+
+class SubmitForm extends VaccineEvent {}
