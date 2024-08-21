@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:untitled/paralysis/bloc_paralysis/bloc.dart';
-import 'package:untitled/paralysis/paralysis.dart';
-import 'package:untitled/rubella/bloc/rubella_bloc.dart';
+import 'package:untitled/staff/paralysis/bloc_paralysis/bloc.dart';
+import 'package:untitled/staff/paralysis/paralysis.dart';
+import 'package:untitled/staff/rubella/bloc/rubella_bloc.dart';
 
-import 'package:untitled/rubella/view/rubella.dart';
-import 'package:untitled/typhoid/bloc/typhoid_bloc.dart';
-import 'package:untitled/typhoid/view/typhoid.dart';
-import 'package:untitled/vaccine_preventable_disease/bloc/vaccine_bloc.dart';
-import 'package:untitled/vaccine_preventable_disease/view/vaccine.dart';
+import 'package:untitled/staff/rubella/view/rubella.dart';
+import 'package:untitled/staff/typhoid/bloc/typhoid_bloc.dart';
+import 'package:untitled/staff/typhoid/view/typhoid.dart';
+import 'package:untitled/staff/vaccine_preventable_disease/bloc/vaccine_bloc.dart';
+import 'package:untitled/staff/vaccine_preventable_disease/view/vaccine.dart';
 
 import 'HomePage/bloc_home/bloc.dart';
 import 'HomePage/view/DiseaseScreen.dart';
-import 'ivdv/bloc/ivdv_bloc.dart';
-import 'ivdv/view/ivdv.dart';
+import 'staff/ivdv/bloc/ivdv_bloc.dart';
+import 'staff/ivdv/view/ivdv.dart';
 
 void main() {
   runApp(MyApp());
