@@ -19,4 +19,3 @@ class TyphoidState extends Equatable {
   @override
   List<Object> get props => [fields, submissionStatus];
 }
-

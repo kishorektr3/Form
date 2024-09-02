@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:untitled/HomePage/view/DiseaseScreen.dart';
-
+import 'package:untitled/staff/homepage/view/DiseaseScreen.dart';
 import 'bloc_paralysis/bloc.dart';
 import 'bloc_paralysis/event.dart';
 import 'bloc_paralysis/state.dart';

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:untitled/staff/homepage/view/DiseaseScreen.dart';
 import 'package:untitled/staff/rubella/bloc/rubella_bloc.dart';
-import 'package:untitled/staff/rubella/bloc/rubella_bloc.dart';
 import 'package:untitled/staff/rubella/bloc/rubella_event.dart';
 import 'package:untitled/staff/rubella/bloc/rubella_state.dart';
 
@@ -14,22 +13,15 @@ class Rubella extends StatefulWidget {
 
 class _RubellaState extends State<Rubella> {
   final TextEditingController titleController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
   final PageController _pageController = PageController();
   double _sliderValue = 0;
-  final int _totalPages = 5;
-  void _onSliderChanged(double value) {
-    setState(() {
-      _sliderValue = value;
-      _pageController.jumpToPage(value.toInt());
-    });
-  }
+  final int _totalPages = 6;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent.shade100,
+        backgroundColor: Color(0xFF6C63FF),
         title: Text('Rubella'),
         centerTitle: true,
       ),
@@ -38,6 +30,7 @@ class _RubellaState extends State<Rubella> {
           _buildSlider(), // Call the separate slider method
           Expanded(
             child: PageView(
+              physics: NeverScrollableScrollPhysics(),
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -50,6 +43,7 @@ class _RubellaState extends State<Rubella> {
                 _buildPage3(),
                 _buildPage4(),
                 _buildPage5(),
+                _buildPage6(),
               ],
             ),
           ),
@@ -82,22 +76,29 @@ class _RubellaState extends State<Rubella> {
       child: SliderTheme(
         data: SliderThemeData(
           activeTrackColor: Colors.blueAccent,
-          inactiveTrackColor: Colors.blueGrey[200],
+          inactiveTrackColor: Colors.grey[300],
           thumbColor: Colors.blueAccent,
           overlayColor: Colors.blueAccent.withOpacity(0.2),
-          trackHeight: 4.0,
-          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
-          overlayShape: RoundSliderOverlayShape(overlayRadius: 24.0),
+          trackHeight: 8.0, // Thicker track to match the design
+          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.0),
+          overlayShape: RoundSliderOverlayShape(overlayRadius: 16.0),
           valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-          valueIndicatorTextStyle: TextStyle(color: Colors.white),
+          valueIndicatorTextStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          trackShape:
+              RoundedRectSliderTrackShape(), // Rounded corners for the track
         ),
         child: Slider(
+          activeColor: Colors.blue,
+          inactiveColor: Colors.grey,
           value: _sliderValue,
           min: 0,
           max: (_totalPages - 1).toDouble(),
           divisions: _totalPages - 1,
-          label: (_sliderValue + 1).toInt().toString(),
-          onChanged: _onSliderChanged,
+          label: '${(_sliderValue * 5 / (_totalPages - 1)).toInt()}',
+          onChanged: (e) {}, // Disable user interaction
         ),
       ),
     );
@@ -110,12 +111,22 @@ class _RubellaState extends State<Rubella> {
   String? _symptomsneighbour;
   String? _provisional;
   String? _activecase;
-
+  String? _others;
+  String? _birthdefect;
+  String? _otherdefect;
+  String? _othermigratory;
+  String? _specimen;
+  String? _blood;
+  String? _death;
+  String? _complications;
+  String? _pregnant;
   final GlobalKey<FormState> _formKeyPage1 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage2 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage3 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage4 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage5 = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyPage6 = GlobalKey<FormState>();
+
   int _selectedIndex = 0;
 
   @override
@@ -172,25 +183,22 @@ class _RubellaState extends State<Rubella> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "1. Type of Case",
+                "1. Type of case",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: _buildDropdownField(
-                      ['Sporadic', 'Outbreak'],
-                      "Title",
-                      "Title",
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      "[If case belongs to an outbreak then please provide a linked MOB-ID (MOB- IND-BI- AGB- _____- ______ )",
-                      "[If case belongs to an outbreak then please provide a linked MOB-ID (MOB- IND-BI- AGB- _____- ______ )",
-                    ),
+                  _buildDropdownField(
+                    ['Outbreak', 'Sporadic'],
+                    "Type of Case",
+                    "typeOfCase",
+                    conditionalValue: 'Outbreak',
+                    additionalWidgets: [
+                      _buildTextField(
+                          '  "If case belongs to an outbreak then please provide a linked MOB-ID (MOB- IND-BI- AGB- _____- ______ )",',
+                          '  "If case belongs to an outbreak then please provide a linked MOB-ID (MOB- IND-BI- AGB- _____- ______ )",')
+                    ],
                   ),
                 ],
               ),
@@ -261,32 +269,31 @@ class _RubellaState extends State<Rubella> {
                   ),
                 ],
               ),
-              Row(
+              Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Aligns children to the start
                 children: [
-                  Expanded(
-                    child: _buildDropdownField(
-                      ['VHP', 'HP', 'Other', 'LP'],
-                      "Category",
-                      "Category",
-                    ),
+                  _buildDropdownField(
+                    ['VHP', 'HP', 'Other', 'LP'],
+                    "Category",
+                    "Category",
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDropdownField(
-                      [
-                        'Govt. Allopathic',
-                        'Pvt Allopathic',
-                        'ISM Pract',
-                        'Quack',
-                        'HW',
-                        'HSC',
-                        'HWC',
-                        'FLW',
-                        'Others'
-                      ],
-                      "Setup",
-                      "Setup",
-                    ),
+                  SizedBox(
+                      height: 16), // Adds space between the two dropdown fields
+                  _buildDropdownField(
+                    [
+                      'Govt. Allopathic',
+                      'Pvt Allopathic',
+                      'ISM Pract',
+                      'Quack',
+                      'HW',
+                      'HSC',
+                      'HWC',
+                      'FLW',
+                      'Others'
+                    ],
+                    "Setup",
+                    "Setup",
                   ),
                 ],
               ),
@@ -315,140 +322,142 @@ class _RubellaState extends State<Rubella> {
   }
 
   Widget _buildPage2() {
-    return BlocConsumer<RubellaBloc, RubellaState>(
-      listener: (context, state) {
-        // Handle additional actions based on state changes here if needed
-      },
-      builder: (context, state) {
-        final migratoryFamilySelection =
-            state.fields["Patient belongs to migratory family/community"];
-
-        return Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: Form(
-            key: _formKeyPage2,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.all(25.0),
+      child: Form(
+        key: _formKeyPage2,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(
+                "3. Case Identification",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              Row(
                 children: [
-                  Text(
-                    "3. Case Identification",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      // First Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTextField("Patient name", "patientName"),
-                            _buildTextField(
-                                "Other Given name", "otherGivenName"),
-                            _buildTextField("Father's name", "fatherName"),
-                            _buildDateField("Date of Birth", "dateOfBirth"),
-                            _buildTextField("Age (Years / Months)", "age",
-                                keyboardType: TextInputType.number),
-                            _buildTextField("Tel/Mobile", "mobile",
-                                keyboardType: TextInputType.number),
-                            _buildTextField("Mother's name", "motherName"),
-                            _buildDropdownField(
-                              ['Male', 'Female'],
-                              "Sex",
-                              "Sex",
-                            ),
-                            _buildTextField("Address", "address"),
-                            _buildTextField("Landmark", "landmark"),
-                          ],
+                  // First Column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTextField("Patient name", "patientName"),
+                        _buildTextField("Other Given name", "otherGivenName"),
+                        _buildTextField("Father's name", "fatherName"),
+                        _buildDateField("Date of Birth", "dateOfBirth"),
+                        _buildTextField("Age (Years / Months)", "age",
+                            keyboardType: TextInputType.number),
+                        _buildTextField("Tel/Mobile", "mobile",
+                            keyboardType: TextInputType.number),
+                        _buildTextField("Mother's name", "motherName"),
+                        _buildDropdownField(
+                          ['Male', 'Female'],
+                          "Sex",
+                          "Sex",
                         ),
-                      ),
-                      SizedBox(width: 16), // Space between columns
-                      // Second Column
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTextField(
-                                "Planning unit(PHC/UPHC)", "planningUnit"),
-                            _buildTextField(
-                                "Village/Mohalla", "villageMohalla"),
-                            _buildTextField("HRA", "hra"),
-                            _buildDropdownField(
-                              ['Hindu', 'Muslim', 'Other'],
-                              "Religion",
-                              "Religion",
-                            ),
-                            _buildTextField(
-                                "Panchayat/Ward No", "panchayatWardNo"),
-                            _buildTextField("Caste", "caste"),
-                            _buildTextField("Id No", "idNo"),
-                            _buildTextField(
-                                "Block/Urban area", "blockUrbanArea"),
-                            _buildTextField("District", "district"),
-                            _buildDropdownField(
-                                ['Urban', 'Rural'], "Setting", "setting"),
-                            _buildTextField("State", "state"),
-                            _buildTextField("Pincode", "pincode"),
-                            _buildTextField("Mobile", "mobile"),
-                            _buildTextField("Mail ID", "mailId"),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16), // Space between sections
-                  // Migratory family/community section
-                  _buildDropdownField(
-                    ['YES', 'NO', 'UNKNOWN'],
-                    "Patient belongs to migratory family/community",
-                    "Patient belongs to migratory family/community",
-                  ),
-                  if (migratoryFamilySelection == "YES") ...[
-                    _buildDropdownField(
-                      ['Slum', 'Nomad', 'Brick kiln', 'Construction site'],
-                      "If yes, specify",
-                      "If yes, specify",
+                        _buildTextField("Address", "address"),
+                        _buildTextField("Landmark", "landmark"),
+                      ],
                     ),
-                    _buildTextField("Others(specify)", "Others(specify)"),
-                  ],
-                  SizedBox(height: 20), // Space before buttons
-                  // Buttons row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          _pageController.previousPage(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                        child: Text("Previous"),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_formKeyPage5.currentState?.validate() ?? false) {
-                            _nextPage(); // Navigate to the next page if validation passes
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Please fill in all required fields'),
-                              ),
-                            );
-                          }
-                        },
-                        child: Text("Next"),
-                      ),
-                    ],
+                  ),
+                  SizedBox(width: 16), // Space between columns
+                  // Second Column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTextField(
+                            "Planning unit(PHC/UPHC)", "planningUnit"),
+                        _buildTextField("Village/Mohalla", "villageMohalla"),
+                        _buildTextField("HRA", "hra"),
+                        _buildDropdownField(
+                          ['Hindu', 'Muslim', 'Other'],
+                          "Religion",
+                          "Religion",
+                        ),
+                        _buildTextField("Panchayat/Ward No", "panchayatWardNo"),
+                        _buildTextField("Caste", "caste"),
+                        _buildTextField("Id No", "idNo"),
+                        _buildTextField("Block/Urban area", "blockUrbanArea"),
+                        _buildTextField("District", "district"),
+                        _buildDropdownField(
+                            ['Urban', 'Rural'], "Setting", "setting"),
+                        _buildTextField("State", "state"),
+                        _buildTextField("Pincode", "pincode"),
+                        _buildTextField("Mobile", "mobile"),
+                        _buildTextField("Mail ID", "mailId"),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
+              SizedBox(height: 16), // Space between sections
+              // Migratory family/community section
+              _buildDropdownField(
+                ['Yes', 'No'],
+                "Patient belongs to migratory family/ community :",
+                "Patient belongs to migratory family/ community :",
+                onChanged: (value) {
+                  setState(() {
+                    _migratoryFamilySelection = value;
+                  });
+                },
+              ),
+              if (_migratoryFamilySelection == 'Yes') ...[
+                _buildDropdownField(
+                  [
+                    ' Slum with migration',
+                    'Nomad',
+                    ' Brick Kiln ',
+                    'Construction site',
+                    'Others'
+                  ],
+                  '  specify',
+                  '  specify patient belongs to',
+                  onChanged: (value) {
+                    setState(() {
+                      _othermigratory = value;
+                    });
+                  },
+                ),
+                if (_othermigratory == "Others") ...[
+                  _buildTextField('others', 'others migratory')
+                ]
+              ],
+              SizedBox(height: 20), // Space before buttons
+              // Buttons row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Text("Previous"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKeyPage2.currentState?.validate() ?? false) {
+                        _nextPage(); // Navigate to the next page if validation passes
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please fill in all required fields'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text("Next"),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -490,23 +499,17 @@ class _RubellaState extends State<Rubella> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               _buildDropdownField(
-                [
-                  'YES',
-                  'NO',
-                  'Unknown',
-                  'NA',
+                ['YES', 'NO', 'Unknown', 'NA'],
+                " Measles containing vaccine received:",
+                " Measles containing vaccine received:",
+                conditionalValue: 'YES',
+                additionalWidgets: [
+                  _buildDropdownField(
+                    ['MCP card', 'Recall' 'both'],
+                    " vaccination history as per: ",
+                    " vaccination history as per: ",
+                  ),
                 ],
-                " Measles containing vaccine received through RI",
-                " Measles containing vaccine received through RI",
-              ),
-              _buildDropdownField(
-                [
-                  ' MCP card',
-                  'Recall',
-                  "both",
-                ],
-                " If yes, vaccination history as per",
-                "If yes, vaccination history as per",
               ),
               _buildDropdownField(
                 ['YES', 'NO', "Unknown", "NA"],
@@ -533,33 +536,50 @@ class _RubellaState extends State<Rubella> {
               _buildDateField(" If card available, date",
                   " If card available, date for MCV2"),
               _buildDropdownField(
-                [
-                  'Awareness gap',
-                  ' AEFI apprehension',
-                  " Child travelling",
-                  " Operational gap",
-                  'refusal'
-                ],
-                "  If MCV is missed in RI ,specify reason",
-                " If MCV is missed in RI ,specify reason",
-              ),
-              _buildTextField("others", "others MCV missed reason"),
+                  [
+                    'Awareness gap',
+                    ' AEFI apprehension',
+                    " Child travelling",
+                    " Operational gap",
+                    'refusal',
+                    'Others',
+                  ],
+                  "  If MCV is missed in RI ,specify reason",
+                  " If MCV is missed in RI ,specify reason",
+                  conditionalValue: 'Others',
+                  additionalWidgets: [
+                    _buildTextField('Others', 'specify reason if others ')
+                  ]),
               _buildTextField(
                   " No. of MCV doses received through campaign (SIA):",
                   "c. No. of MCV doses received through campaign (SIA):"),
               _buildDropdownField(
                 [
-                  'Awareness gap',
-                  ' AEFI apprehension',
-                  " Child travelling",
-                  " Operational gap",
-                  'refusal',
-                  'campaign not held',
+                  '0',
+                  '1',
+                  " 2",
+                  " 3",
+                  '4',
+                  'more',
                 ],
-                "   If campaign dose is missed, encircle reason",
-                "  If campaign dose is missed, encircle reason",
+                " Total MCV doses (RI+SIA):",
+                "Total MCV doses (RI+SIA):",
               ),
-              _buildTextField("others", "others campaign missed reason"),
+              _buildDropdownField(
+                  [
+                    'Awareness gap',
+                    ' AEFI apprehension',
+                    " Child travelling",
+                    " Operational gap",
+                    'refusal',
+                    'Others',
+                  ],
+                  "  If campaign dose is missed, encircle reason",
+                  " If campaign dose is missed, encircle reason",
+                  conditionalValue: 'Others',
+                  additionalWidgets: [
+                    _buildTextField('Others', 'specify reason if others ')
+                  ]),
               _buildDateField("  Date of last dose of MCV (before rash onset)",
                   "  Date of last dose of MCV (before rash onset)"),
               _buildDateField(
@@ -708,24 +728,24 @@ class _RubellaState extends State<Rubella> {
                   SizedBox(width: 16),
                   Expanded(
                     child: _buildDropdownField(
-                      ['YES', 'NO'],
-                      "Complications",
-                      "Complications",
-                    ),
+                        ['YES', 'NO'], "Complications", "Complications",
+                        conditionalField: 'YES',
+                        additionalWidgets: [
+                          _buildDropdownField(
+                            [
+                              'Diarrhea',
+                              'Malnutrition',
+                              'Encephalitis',
+                              'ARI',
+                              'Pneumonia',
+                              'Ear problems (otitis media)'
+                            ],
+                            "Specify",
+                            "Specify",
+                          ),
+                        ]),
                   ),
                 ],
-              ),
-              _buildDropdownField(
-                [
-                  'Diarrhea',
-                  'Malnutrition',
-                  'Encephalitis',
-                  'ARI',
-                  'Pneumonia',
-                  'Ear problems (otitis media)'
-                ],
-                "If yes:",
-                "If yes:",
               ),
               Row(
                 children: [
@@ -816,8 +836,8 @@ class _RubellaState extends State<Rubella> {
               ),
               if (_requirescross == 'Yes') ...[
                 _buildDateField(
-                  "If yes, date of cross notification:",
-                  'If yes, No. affected',
+                  " date of cross notification:",
+                  ' date of cross notification:',
                 )
               ],
               _buildTextField('Block/ Urban area of residence:',
@@ -868,147 +888,397 @@ class _RubellaState extends State<Rubella> {
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(25.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    "8. History of similar symptoms among close contacts",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  "8. History of similar symptoms among close contacts",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 16),
-                _buildDropdownField(
-                  ['Yes', 'No'],
-                  "Similar symptoms in other household contact(s):",
-                  "Similar symptoms in other household contact(s):",
-                  onChanged: (value) {
-                    setState(() {
-                      _similarSymptoms = value;
-                    });
-                  },
-                ),
-                if (_similarSymptoms == 'Yes') ...[
-                  _buildTextField(
-                    'If yes, No. affected',
-                    'If yes, No. affected',
-                  ),
-                  _buildTextField(
-                    'Name/s:',
-                    'Name/s:',
-                  ),
-                ],
-                _buildDropdownField(
-                  ['Yes', 'No'],
-                  "Similar symptoms in other neighbourhood / work / school contact(s):",
-                  "Similar symptoms in other neighbourhood / work / school contact(s):",
-                  onChanged: (value) {
-                    setState(() {
-                      _symptomsneighbour = value;
-                    });
-                  },
-                ),
-                if (_symptomsneighbour == 'Yes') ...[
-                  _buildTextField(
-                    'If yes, No. affected',
-                    'If yes, No. affected neigbour',
-                  ),
-                  _buildTextField(
-                    'Name/s:',
-                    'Name/s: ',
-                  ),
-                ],
+              ),
+              SizedBox(height: 16),
+              _buildDropdownField(
+                ['Yes', 'No'],
+                "Similar symptoms in other household contact(s):",
+                "Similar symptoms in other household contact(s):",
+                onChanged: (value) {
+                  setState(() {
+                    _similarSymptoms = value;
+                  });
+                },
+              ),
+              if (_similarSymptoms == 'Yes') ...[
                 _buildTextField(
-                  ' If any of the above contact is already lab confirmed, mention EPID No',
-                  " If any of the above contact is already lab confirmed, mention EPID No",
+                  ' No. affected',
+                  ' No. affected',
                 ),
-                Text(
+                _buildTextField(
+                  'Name/s:',
+                  'Name/s:',
+                ),
+              ],
+              _buildDropdownField(
+                ['Yes', 'No'],
+                "Similar symptoms in other neighbourhood / work / school contact(s):",
+                "Similar symptoms in other neighbourhood / work / school contact(s):",
+                onChanged: (value) {
+                  setState(() {
+                    _symptomsneighbour = value;
+                  });
+                },
+              ),
+              if (_symptomsneighbour == 'Yes') ...[
+                _buildTextField(
+                  'No. affected',
+                  ' No. affected neigbour',
+                ),
+                _buildTextField(
+                  'Name/s:',
+                  'Name/s: ',
+                ),
+              ],
+              _buildTextField(
+                ' If any of the above contact is already lab confirmed, mention EPID No',
+                " If any of the above contact is already lab confirmed, mention EPID No",
+              ),
+              Center(
+                child: Text(
                   "9. Health seeking behaviour after rash onset",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                _buildDropdownField(
-                  [
-                    'confined at home',
-                    'contacted community workers',
-                    ' contacted health facility'
-                  ],
-                  "Health seeking behaviour after rash onset (encircle): ",
-                  " Health seeking behaviour after rash onset (encircle): ",
+              ),
+              _buildDropdownField(
+                [
+                  'confined at home',
+                  'contacted community workers',
+                  ' contacted health facility'
+                ],
+                "Health seeking behaviour after rash onset (encircle): ",
+                " Health seeking behaviour after rash onset (encircle): ",
+              ),
+              Center(
+                child: Text(
+                  "10. If history of contact with community workers after the date of rash onset , mention details:",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                Text(
+              ),
+              _buildTextField('Name', 'Name'),
+              _buildDropdownField([
+                'Health workers ',
+                ' Religious leader',
+                'Community influencer'
+              ], 'Specify category of community workers',
+                  'Specify category of community workers'),
+              _buildDateField('Date of contact', 'Date of contact'),
+              _buildDropdownField(
+                  ['YES', 'NO'],
+                  'Did they refer / report the case to  any facility',
+                  'Did they refer / report the case to  any facility'),
+              _buildTextField(
+                  'Action by DIO / SMO/ MO', 'Action by DIO / SMO/ MO'),
+              Center(
+                child: Text(
+                  "Categories of Community workers",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
+              ),
+              _buildDropdownField(['ANM', 'CHO', 'AWW', 'ASHA', 'LHV', 'MPW'],
+                  ' Health Workers', ' Health Workers'),
+              _buildDropdownField(
+                  ['Priest', 'Temple link person', 'Mazars', 'Maulana', 'Ozha'],
+                  ' Religious leaders',
+                  ' Religious leaders'),
+              _buildDropdownField(
+                  ['Village head ', ' Teacher', 'Pradhan', 'Panchayat member'],
+                  ' Community influencers ',
+                  ' Community influencers '),
+              Center(
+                child: Text(
                   "12. Provisional diagnosis",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+              ),
+              _buildDropdownField(
+                ['Suspected Measles', 'Suspected Rubella', 'Others'],
+                "Provisional diagnosis:",
+                "Provisional diagnosis:",
+                onChanged: (value) {
+                  setState(() {
+                    _provisional = value;
+                  });
+                },
+              ),
+              if (_provisional == 'Others') ...[
+                _buildTextField(
+                  'Other ',
+                  'Other provisional',
+                ),
+              ],
+              Center(
+                child: Text(
+                  "13. Specimen Collection: ",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              _buildDropdownField(
+                ['Yes', 'No'],
+                'Specimen Collection',
+                'Specimen Collection',
+                onChanged: (value) {
+                  setState(() {
+                    _specimen = value;
+                  });
+                },
+              ),
+              if (_specimen == 'Yes') ...[
                 _buildDropdownField(
-                  ['Suspected Measles', 'Suspected Rubella', 'Others'],
-                  "Provisional diagnosis:",
-                  "Provisional diagnosis:",
-                  onChanged: (value) {
+                  [
+                    'Blood',
+                    'Throat Swab ',
+                    'Nasopharyngeal swab',
+                    'Urine sample'
+                  ],
+                  'Select Specimen type',
+                  'Select Specimen type',
+                  onChanged: (value) => {
                     setState(() {
-                      _provisional = value;
-                    });
+                      _blood = value;
+                    })
                   },
                 ),
-                if (_provisional == 'Others') ...[
-                  _buildTextField(
-                    'Other ',
-                    'Other provisional',
-                  ),
-                ],
-                Text(
+                if (_blood == 'Blood') ...[
+                  _buildDateField(
+                      'Blood date collected', 'Blood date collected'),
+                  _buildDateField('Blood Date Sent', 'Blood Date Sent'),
+                  _buildDateField(
+                      'Blood  Date of Result', 'Blood  Date of Result'),
+                  _buildDropdownField(['Good ', 'Poor'], 'Conditon of sample',
+                      'Conditon of sample')
+                ]
+              ],
+              Center(
+                child: Text(
                   "14. Name of Govt Health Facility resposible for Active Case Search and public health response in neihbourhood community (scanning of area by HW /FLW ): : ",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+              ),
+              _buildDropdownField(
+                ['Yes', 'No'],
+                "Active case search in community done",
+                "Active case search in community done:",
+                onChanged: (value) {
+                  setState(() {
+                    _activecase = value;
+                  });
+                },
+              ),
+              if (_activecase == 'Yes') ...[
+                _buildDateField(" Date of search", " Date of search:"),
+              ],
+              _buildTextField(
+                'Number of suspected cases found ',
+                'Number of suspected cases found',
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Text("Previous"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKeyPage5.currentState?.validate() ?? false) {
+                        _nextPage(); // Navigate to the next page if validation passes
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please fill in all required fields'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text("Next"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPage6() {
+    return Form(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Form(
+            key: _formKeyPage6,
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Center(
+                child: Text(
+                  " 15. Feedback",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Text(
+                "Patient / Caregiver: ",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+              ),
+              _buildTextField('Mobile', ' patient Mobile  '),
+              _buildTextField('Email Id', ' patient Email Id'),
+              _buildDateField('Date Given ', ' Feedback Date Given '),
+              Text(
+                " Reporting Person / Institution: ",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+              ),
+              _buildTextField('Mobile', ' reporting person Mobile'),
+              _buildTextField('Email Id', ' reporting  person Email Id'),
+              _buildDateField(
+                  'Date Given ', '  reporting person Feedback Date Given '),
+              Text(
+                " 16. 30 Day Follow-up:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              _buildDateField(' Date of follow-up ', 'Date of follow-up'),
+              _buildDropdownField(
+                ['Alive', 'Death', 'Lost'],
+                'OUtcome',
+                "outcome",
+                onChanged: (value) => setState(() {
+                  _death = value;
+                }),
+              ),
+              if (_death == 'Death') ...[
+                _buildDateField(
+                    ' If died, date of death: ', ' If died, date of death: '),
+                _buildTextField('Cause of death', 'Cause of death')
+              ],
+              _buildDropdownField(
+                ['Yes', 'No'],
+                'Complications present',
+                'Complications present:',
+                onChanged: (value) {
+                  setState(() {
+                    _complications = value;
+                  });
+                },
+              ),
+              if (_complications == 'Yes') ...[
                 _buildDropdownField(
-                  ['Yes', 'No'],
-                  "Active case search in community done",
-                  "Active case search in community done:",
+                  [
+                    'Diarrhea',
+                    'Pneumonia',
+                    'Encephalitis',
+                    'Ear infection',
+                    'Eye complications ',
+                    'Skin complications',
+                    'Co-morbid conditions',
+                    'Others'
+                  ],
+                  "Type of complications",
+                  "Type of complications",
                   onChanged: (value) {
                     setState(() {
-                      _activecase = value;
+                      _others = value;
                     });
                   },
                 ),
-                if (_activecase == 'Yes') ...[
-                  _buildDateField(
-                      "If yes, Date of search", "If yes, Date of search:"),
-                ],
-                _buildTextField(
-                  'Number of suspected cases found ',
-                  'Number of suspected cases found',
+                if (_others == 'Others') ...[
+                  _buildTextField(
+                    'Other ',
+                    'Other complications',
+                  )
+                ]
+              ],
+              _buildDropdownField(
+                ['Yes', 'No'],
+                ' suspected case is Pregnant',
+                ' suspected case is Pregnant',
+                onChanged: (value) => setState(() {
+                  _pregnant = value;
+                }),
+              ),
+              if (_pregnant == 'Yes') ...[
+                _buildDateField(
+                    'Date visit made to newborn from infected mother ',
+                    ' Date visit made to newborn from infected mother '),
+                _buildDropdownField(
+                    [' Spontaneous abortion ', 'MTP', 'Still birth '],
+                    ' observation after delivery / end of pregnancy',
+                    ' observation after delivery / end of pregnancy'),
+                SizedBox(height: 16),
+                _buildDropdownField(
+                  [': Normal', 'Birth defect'],
+                  "Newborn Status",
+                  "Newborn Status",
+                  onChanged: (value) {
+                    setState(() {
+                      _birthdefect = value;
+                    });
+                  },
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final rubellaBloc = context.read<RubellaBloc>();
-
-                      // Trigger the form submission
-                      rubellaBloc.add(SubmitForm());
-
-                      // Listen for form submission success
-                      rubellaBloc.stream.listen((state) {
-                        if (state.fields.isEmpty) {
-                          // Show a success message using a SnackBar
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Submitted successfully'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-
-                          // After submission, navigate to the next page with the form data
-                          // Navigator.push(...); // Uncomment and implement navigation as needed
-                        }
+                if (_birthdefect == 'Birth defect') ...[
+                  _buildDropdownField(
+                    [
+                      'Congenital heart defect',
+                      'Eye defect',
+                      'Hearing defect',
+                      'Neurological defect',
+                      ' Endocrine defect',
+                      'Otherdefect'
+                    ],
+                    'If New born has birth defects then please encircle',
+                    'If New born has birth defects then please encircle',
+                    onChanged: (value) {
+                      setState(() {
+                        _otherdefect = value;
                       });
                     },
-                    child: Text("Submit"),
                   ),
-                )
+                  if (_otherdefect == 'Other defect') ...[
+                    _buildTextField('Other(specify)', 'birth defect  other ')
+                  ]
+                ],
               ],
-            ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final rubellaBloc = context.read<RubellaBloc>();
+
+                    // Trigger the form submission
+                    rubellaBloc.add(SubmitForm());
+
+                    // Listen for form submission success
+                    rubellaBloc.stream.listen((state) {
+                      if (state.fields.isEmpty) {
+                        // Show a success message using a SnackBar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Submitted successfully'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+
+                        // After submission, navigate to the next page with the form data
+                        // Navigator.push(...); // Uncomment and implement navigation as needed
+                      }
+                    });
+                  },
+                  child: Text("Submit"),
+                ),
+              ),
+            ]),
           ),
         ),
       ),
@@ -1029,12 +1299,36 @@ class _RubellaState extends State<Rubella> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: labelText,
-          border: OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blue,
+              width: 2.0,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: 15.0,
+            horizontal: 12.0,
+          ),
         ),
         validator: validator ?? _validateRequired, // Apply validation
         onChanged: (value) {
           context.read<RubellaBloc>().add(
-                UpdateField(fieldName, value) as RubellaEvent,
+                UpdateField(fieldName, value),
               );
         },
       ),
@@ -1050,7 +1344,31 @@ class _RubellaState extends State<Rubella> {
           decoration: InputDecoration(
             suffixIcon: Icon(Icons.calendar_today),
             labelText: labelText,
-            border: OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: BorderSide(
+                color: Colors.blueGrey,
+                width: 1.5,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: BorderSide(
+                color: Colors.blueGrey,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: BorderSide(
+                color: Colors.blue,
+                width: 2.0,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 15.0,
+              horizontal: 12.0,
+            ),
           ),
           child: BlocBuilder<RubellaBloc, RubellaState>(
             builder: (context, state) {
@@ -1067,10 +1385,11 @@ class _RubellaState extends State<Rubella> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        fieldValue,
+                        fieldValue.isEmpty ? 'pick date' : fieldValue,
                         style: TextStyle(
                           color:
                               fieldValue.isEmpty ? Colors.grey : Colors.black,
+                          fontSize: 16.0,
                         ),
                       ),
                       if (field.hasError)
@@ -1097,6 +1416,9 @@ class _RubellaState extends State<Rubella> {
     String labelText,
     String fieldName, {
     ValueChanged<String?>? onChanged,
+    String? conditionalField,
+    String? conditionalValue,
+    List<Widget>? additionalWidgets,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1104,60 +1426,74 @@ class _RubellaState extends State<Rubella> {
         builder: (context, state) {
           final selectedValue = state.fields[fieldName] as String?;
 
-          return DropdownButtonFormField<String>(
-            value: items.contains(selectedValue) ? selectedValue : null,
-            decoration: InputDecoration(
-              labelText: labelText,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color
-                  width: 1.5, // Border width
+          // Check the condition to render additional widgets
+          bool shouldShowAdditionalWidgets = selectedValue == conditionalValue;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                value: items.contains(selectedValue) ? selectedValue : null,
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 15.0,
+                    horizontal: 12.0,
+                  ),
                 ),
+                items: items.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<RubellaBloc>().add(
+                          UpdateField(fieldName, value),
+                        );
+
+                    // Print the selected value to the console
+
+                    if (onChanged != null) {
+                      onChanged(value);
+                    }
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a value';
+                  }
+                  return null;
+                },
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color when enabled
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blue, // Border color when focused
-                  width: 2.0,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                  vertical: 15.0, horizontal: 12.0), // Padding inside the field
-            ),
-            items: items.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style:
-                      TextStyle(fontSize: 16.0), // Font size for dropdown items
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                context.read<RubellaBloc>().add(
-                      UpdateField(fieldName, value) as RubellaEvent,
-                    );
-                if (onChanged != null) {
-                  onChanged(value);
-                }
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a value';
-              }
-              return null;
-            },
+              if (shouldShowAdditionalWidgets && additionalWidgets != null)
+                ...additionalWidgets,
+            ],
           );
         },
       ),
@@ -1198,22 +1534,4 @@ class _RubellaState extends State<Rubella> {
   String? _validateRequired(String? value) {
     return value == null || value.isEmpty ? 'This field is required' : null;
   }
-}
-
-Widget _buildHomePage() {
-  return Center(
-    child: Text("Search page"),
-  );
-}
-
-Widget _buildSearchPage() {
-  return Center(
-    child: Text("profile page"),
-  );
-}
-
-Widget _buildProfilePage() {
-  return Center(
-    child: Text("Profile Page"),
-  );
 }

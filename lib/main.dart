@@ -11,10 +11,9 @@ import 'package:untitled/staff/typhoid/bloc/typhoid_bloc.dart';
 import 'package:untitled/staff/typhoid/view/typhoid.dart';
 import 'package:untitled/staff/vaccine_preventable_disease/bloc/vaccine_bloc.dart';
 import 'package:untitled/staff/vaccine_preventable_disease/view/vaccine.dart';
-
-import 'HomePage/view/DiseaseScreen.dart';
 import 'staff/ivdv/bloc/ivdv_bloc.dart';
 import 'staff/ivdv/view/ivdv.dart';
+import 'staff/homepage/view/DiseaseScreen.dart';
 
 void main() {
   runApp(MyApp());

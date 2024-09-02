@@ -17,4 +17,14 @@ class UpdateField extends TyphoidEvent {
   List<Object> get props => [fieldName, fieldValue];
 }
 
+class UpdateMultipleSelectionField extends TyphoidEvent {
+  final String fieldName;
+  final List<String> selectedValues;
+
+  UpdateMultipleSelectionField(this.fieldName, this.selectedValues);
+
+  @override
+  List<Object> get props => [fieldName, selectedValues];
+}
+
 class SubmitForm extends TyphoidEvent {}

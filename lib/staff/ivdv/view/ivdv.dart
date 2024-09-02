@@ -1,11 +1,11 @@
-// ignore_for_file: override_on_non_overriding_member
+// ignore_for_file: override_on_non_overriding_member, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:untitled/staff/homepage/view/DiseaseScreen.dart';
 import 'package:untitled/staff/ivdv/bloc/ivdv_bloc.dart';
-import 'package:untitled/staff/ivdv/bloc/ivdv_bloc.dart';
+
 import 'package:untitled/staff/ivdv/bloc/ivdv_event.dart';
 import 'package:untitled/staff/ivdv/bloc/ivdv_state.dart';
 
@@ -17,7 +17,13 @@ class Ivdv extends StatefulWidget {
 class _IvdvState extends State<Ivdv> {
   final TextEditingController titleController = TextEditingController();
   final PageController _pageController = PageController();
-  String? _migratoryFamily;
+  String? others;
+  String? _specimen;
+  String? _othersdue;
+  String? _migratory;
+  String?
+      _antiviralRequested; // Add this variable to track the "Antiviral treatment requested?" selection
+
   final GlobalKey<FormState> _formKeyPage1 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage2 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage3 = GlobalKey<FormState>();
@@ -44,7 +50,6 @@ class _IvdvState extends State<Ivdv> {
   void _onSliderChanged(double value) {
     setState(() {
       _sliderValue = value;
-      _pageController.jumpToPage(value.toInt());
     });
   }
 
@@ -52,7 +57,7 @@ class _IvdvState extends State<Ivdv> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent.shade100,
+        backgroundColor: Color(0xFF6C63FF),
         title: Text('IVDV'),
         centerTitle: true,
       ),
@@ -61,6 +66,7 @@ class _IvdvState extends State<Ivdv> {
           _buildSlider(), // Call the separate slider method
           Expanded(
             child: PageView(
+              physics: NeverScrollableScrollPhysics(),
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -106,22 +112,29 @@ class _IvdvState extends State<Ivdv> {
       child: SliderTheme(
         data: SliderThemeData(
           activeTrackColor: Colors.blueAccent,
-          inactiveTrackColor: Colors.blueGrey[200],
+          inactiveTrackColor: Colors.grey[300],
           thumbColor: Colors.blueAccent,
           overlayColor: Colors.blueAccent.withOpacity(0.2),
-          trackHeight: 4.0,
-          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
-          overlayShape: RoundSliderOverlayShape(overlayRadius: 24.0),
+          trackHeight: 8.0, // Thicker track to match the design
+          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.0),
+          overlayShape: RoundSliderOverlayShape(overlayRadius: 16.0),
           valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-          valueIndicatorTextStyle: TextStyle(color: Colors.white),
+          valueIndicatorTextStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          trackShape:
+              RoundedRectSliderTrackShape(), // Rounded corners for the track
         ),
         child: Slider(
+          activeColor: Colors.blue,
+          inactiveColor: Colors.grey,
           value: _sliderValue,
           min: 0,
           max: (_totalPages - 1).toDouble(),
           divisions: _totalPages - 1,
-          label: (_sliderValue + 1).toInt().toString(),
-          onChanged: _onSliderChanged,
+          label: '${(_sliderValue * 5 / (_totalPages - 1)).toInt()}',
+          onChanged: (e) {}, // Disable user interaction
         ),
       ),
     );
@@ -175,6 +188,7 @@ class _IvdvState extends State<Ivdv> {
 
   Widget _buildFormPages() {
     return PageView(
+      physics: NeverScrollableScrollPhysics(),
       controller: _pageController,
       children: [
         _buildPage1(),
@@ -285,7 +299,7 @@ class _IvdvState extends State<Ivdv> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      if (_formKeyPage1.currentState?.validate() ?? false) {
+                      if (_formKeyPage1.currentState?.validate() ?? true) {
                         _nextPage();
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -307,258 +321,259 @@ class _IvdvState extends State<Ivdv> {
   }
 
   Widget _buildPage2() {
-    return BlocConsumer<IvdvBloc, IvdvState>(listener: (context, state) {
-      // Handle additional actions based on state changes here if needed
-    }, builder: (context, state) {
-      final migratoryFamilySelection =
-          state.fields["Patient belongs to migratory family/community"];
+    return Padding(
+      padding: const EdgeInsets.all(25.0),
+      child: Form(
+        key: _formKeyPage2,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text("2. Case Identification",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
 
-      return Padding(
-        padding: const EdgeInsets.all(25.0),
-        child: Form(
-          key: _formKeyPage2,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text("2. Case Identification",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-
-                // First Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Patient name", "patientName"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child:
-                          _buildTextField("Other Given name", "otherGivenName"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                // Second Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Father's name", "fatherName"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDateField("Date of Birth", "dateOfBirth"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                // Third Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Age (Years / Months)", "age",
-                          keyboardType: TextInputType.number),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField("Tel/Mobile", "mobile",
-                          keyboardType: TextInputType.number),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                // Fourth Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Mother's name", "motherName"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownField(
-                        ['Male', 'Female'],
-                        "Sex",
-                        "Sex",
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                // Continue with more rows...
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Address", "address"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField("Landmark", "landmark"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                          "Planning unit(PHC/UPHC)", "planningUnit"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child:
-                          _buildTextField("Village/Mohalla", "villageMohalla"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                // ... Continue organizing all fields in two-column rows
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                          "Panchayat/Ward No", "panchayatWardNo"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField("Caste", "caste"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Id No", "idNo"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child:
-                          _buildTextField("Block/Urban area", "blockUrbanArea"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("District", "district"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownField(
-                          ['Urban', 'Rural'], "Setting", "setting"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("State", "state"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField("Pincode", "pincode"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField("Mobile", "mobile"),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField("Mail ID", "mailId"),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-
-                _buildDropdownField(
-                  ['YES', 'NO', 'UNKNOWN'],
-                  "Patient belongs to migratory family/community",
-                  "Patient belongs to migratory family/community",
-                ),
-
-                // Conditional question
-                if (migratoryFamilySelection == "YES")
-                  Column(
-                    children: [
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDropdownField(
-                              [
-                                'Slum',
-                                'Nomad',
-                                'Brick kiln',
-                                'Construction site'
-                              ],
-                              "If yes, specify",
-                              "If yes, specify",
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextField(
-                                "Others(specify)", "Others(specify)"),
-                          ),
-                        ],
-                      ),
-                    ],
+              // First Row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Patient name", "patientName"),
                   ),
-                SizedBox(height: 20),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child:
+                        _buildTextField("Other Given name", "otherGivenName"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
 
-                // Previous and Next buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        _pageController.previousPage(
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: Text("Previous"),
+              // Second Row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Father's name", "fatherName"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDateField("Date of Birth", "dateOfBirth"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // Third Row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Age (Years / Months)", "age",
+                        keyboardType: TextInputType.number),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Tel/Mobile", "mobile",
+                        keyboardType: TextInputType.number),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // Fourth Row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Mother's name", "motherName"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                      ['Male', 'Female'],
+                      "Sex",
+                      "Sex",
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKeyPage2.currentState?.validate() ?? false) {
-                          _nextPage(); // Navigate to the next page if validation passes
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('Please fill in all required fields'),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text("Next"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // Continue with more rows...
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Address", "address"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Landmark", "landmark"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                        "Planning unit(PHC/UPHC)", "planningUnit"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Village/Mohalla", "villageMohalla"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // ... Continue organizing all fields in two-column rows
+
+              Row(
+                children: [
+                  Expanded(
+                    child:
+                        _buildTextField("Panchayat/Ward No", "panchayatWardNo"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Caste", "caste"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Id No", "idNo"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child:
+                        _buildTextField("Block/Urban area", "blockUrbanArea"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("District", "district"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                        ['Urban', 'Rural'], "Setting", "setting"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("State", "state"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Pincode", "pincode"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField("Mobile", "mobile"),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField("Mail ID", "mailId"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              _buildDropdownField(
+                ['YES', 'NO', 'UNKNOWN'],
+                "Patient belongs to migratory family/community",
+                "Patient belongs to migratory family/community",
+                onChanged: (value) {
+                  setState(() {
+                    _migratory = value;
+                  });
+                },
+              ),
+              if (others == 'YES') ...[
+                _buildTextField(
+                  'Other ',
+                  'Other complications',
+                )
+              ],
+
+              // Conditional question
+              if (_migratory == "YES")
+                Column(
+                  children: [
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdownField(
+                            [
+                              'Slum',
+                              'Nomad',
+                              'Brick kiln',
+                              'Construction site'
+                            ],
+                            "If yes, specify",
+                            "If yes, specify",
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextField(
+                              "Others(specify)", "Others(specify)"),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              SizedBox(height: 20),
+
+              // Previous and Next buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Text("Previous"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKeyPage2.currentState?.validate() ?? false) {
+                        _nextPage(); // Navigate to the next page if validation passes
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please fill in all required fields'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text("Next"),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   Widget _buildPage3() {
@@ -650,98 +665,112 @@ class _IvdvState extends State<Ivdv> {
         child: Padding(
           padding: const EdgeInsets.all(25.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text("4.Medical History",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              SizedBox(height: 16),
-              _buildDateField(" Date of first consultation as a suspect PID:",
-                  " Date of first consultation as a suspect PID:"),
-              _buildDateField(" Date of confirmation of PID:",
-                  " Date of confirmation of PID: "),
-              _buildTextField(
-                  " Age at diagnosis of PID: ", " Age at diagnosis of PID: "),
-              Text(
-                'PID diagnosis as per latest International Union of Immunological Societies (IUIS) [encircle correct one):',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              _buildTextField(
-                  "a. Severe Combined Immunodeficiency Disorder (specify): _",
-                  "a. Severe Combined Immunodeficiency Disorder (specify): _"),
-              _buildTextField(
-                  "b. Combined Immunodeficiency Disorder with or without syndromic features (specify):",
-                  "b. Combined Immunodeficiency Disorder with or without syndromic features (specify):"),
-              _buildTextField(
-                  "c. Antibody deficiencies i. Agammaglobulinemia, ii. CVID iii. Others (Specify): ",
-                  "c. Antibody deficiencies i. Agammaglobulinemia, ii. CVID iii. Others (Specify): "),
-              _buildTextField(
-                  "d. Other PID (specify):", "d. Other PID (specify):"),
-              _buildDropdownField([
-                'Yes',
-                'No',
-              ], "IVIG treatment", "IVIG treatment"),
-              _buildDropdownField([
-                'Yes',
-                'No',
-              ], "Bone marrow transplant: ", "Bone marrow transplant: "),
-              _buildDropdownField([
-                'Yes',
-                'No',
-              ], " Acute flaccid paralysis (AFP):  ",
-                  " Acute flaccid paralysis (AFP):  "),
-              _buildDateField("If AFP, Date of onset of paralysis:",
-                  " If AFP, Date of onset of paralysis:"),
-              _buildTextField(" AFP EPID number ", " AFP EPID number"),
-              _buildDropdownField([
-                'left arm',
-                'right arm',
-                'left arm',
-                'right leg',
-                'neck',
-                'bulbar',
-                'respirator muscle'
-                    'trunk',
-                'facial'
-              ], "  Site(s) of Paralysis (encircle): ",
-                  "  Site(s) of Paralysis (encircle): "),
-              _buildTextField(" Others (Specify): ", "Others(Specify)"),
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      _pageController.previousPage(
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Text("Previous"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKeyPage4.currentState?.validate() ?? false) {
-                        _nextPage(); // Navigate to the next page if validation passes
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please fill in all required fields'),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text("Next"),
-                  ),
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text("4.Medical History",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                SizedBox(height: 16),
+                _buildDateField(" Date of first consultation as a suspect PID:",
+                    " Date of first consultation as a suspect PID:"),
+                _buildDateField(" Date of confirmation of PID:",
+                    " Date of confirmation of PID: "),
+                _buildTextField(
+                    " Age at diagnosis of PID: ", " Age at diagnosis of PID: "),
+                Text(
+                  'PID diagnosis as per latest International Union of Immunological Societies (IUIS) [encircle correct one):',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                _buildTextField(
+                    "a. Severe Combined Immunodeficiency Disorder (specify): _",
+                    "a. Severe Combined Immunodeficiency Disorder (specify): _"),
+                _buildTextField(
+                    "b. Combined Immunodeficiency Disorder with or without syndromic features (specify):",
+                    "b. Combined Immunodeficiency Disorder with or without syndromic features (specify):"),
+                _buildTextField(
+                    "c. Antibody deficiencies i. Agammaglobulinemia, ii. CVID iii. Others (Specify): ",
+                    "c. Antibody deficiencies i. Agammaglobulinemia, ii. CVID iii. Others (Specify): "),
+                _buildTextField(
+                    "d. Other PID (specify):", "d. Other PID (specify):"),
+                _buildDropdownField([
+                  'Yes',
+                  'No',
+                ], "IVIG treatment", "IVIG treatment"),
+                _buildDropdownField([
+                  'Yes',
+                  'No',
+                ], "Bone marrow transplant: ", "Bone marrow transplant: "),
+                _buildDropdownField([
+                  'Yes',
+                  'No',
+                ], " Acute flaccid paralysis (AFP):  ",
+                    " Acute flaccid paralysis (AFP):  "),
+                _buildDateField("If AFP, Date of onset of paralysis:",
+                    " If AFP, Date of onset of paralysis:"),
+                _buildTextField(" AFP EPID number ", " AFP EPID number"),
+                _buildDropdownField(
+                  [
+                    'left arm',
+                    'right arm',
+                    'left arm',
+                    'right leg',
+                    'neck',
+                    'bulbar',
+                    'respirator muscle'
+                        'trunk',
+                    'facial',
+                    'Others'
+                  ],
+                  "  Site(s) of Paralysis (encircle): ",
+                  "  Site(s) of Paralysis (encircle): ",
+                  onChanged: (value) {
+                    setState(() {
+                      others = value;
+                    });
+                  },
+                ),
+                if (others == 'Others') ...[
+                  _buildTextField(
+                    'Other ',
+                    'Other complications',
+                  )
                 ],
-              ),
-            ],
-          ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        _pageController.previousPage(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Text("Previous"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKeyPage4.currentState?.validate() ?? false) {
+                          _nextPage(); // Navigate to the next page if validation passes
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Please fill in all required fields'),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text("Next"),
+                    ),
+                  ],
+                ),
+              ]),
         ),
       ),
     );
@@ -899,6 +928,63 @@ class _IvdvState extends State<Ivdv> {
                         child: _buildTextField("Final result", "Final result")),
                   ],
                 ),
+                _buildDropdownField(
+                  [
+                    ' Lack of tracking',
+                    'Constipation',
+                    'Death',
+                    'Lost',
+                    'Other'
+                  ],
+                  '*Reason if follow-up specimen not collected within 7 days of due date:',
+                  '*Reason if follow-up specimen not collected within 7 days of due date:',
+                  onChanged: (value) {
+                    setState(() {
+                      _othersdue = value;
+                    });
+                  },
+                ),
+                if (_othersdue == 'Other') ...[
+                  _buildTextField(
+                    'Other ',
+                    'Other due date',
+                  ),
+                ],
+                if (_othersdue == 'Death') ...[
+                  _buildDateField(
+                    'Death date',
+                    'Please specify details',
+                  ),
+                ],
+                _buildDropdownField(
+                  ['Yes', 'No'],
+                  'Contact specimen Collected',
+                  'Contact specimen Collected',
+                  onChanged: (value) {
+                    setState(() {
+                      _specimen = value;
+                    });
+                  },
+                ),
+                if (_specimen == 'Yes') ...[
+                  _buildDateField(
+                    'Date of collection First sample ',
+                    'Date of collection First sample',
+                  ),
+                  _buildDateField(
+                    'Date of collection last sample ',
+                    'Date of collection last sample',
+                  ),
+                  _buildTextField(
+                    'Number of contact specimens collected:',
+                    'Number of contact specimens collected:',
+                  ),
+                  _buildTextField('SL positive', 'SL positive'),
+                  _buildTextField('VDPV positive', 'VDPV positive'),
+                  _buildTextField('WPV positive', 'WPV positive'),
+                  _buildTextField('NPEV positive', 'NPEV  positive'),
+                  _buildTextField('Negative', 'Negative'),
+                ],
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -947,7 +1033,7 @@ class _IvdvState extends State<Ivdv> {
             children: [
               Center(
                 child: Text(
-                  "6.Case Classification",
+                  "6. Case Classification",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -963,7 +1049,7 @@ class _IvdvState extends State<Ivdv> {
                       'VDPV',
                     ], "Type-1", "Type-1"),
                   ),
-                  SizedBox(width: 16), // Space between columns
+                  SizedBox(width: 16),
                   Expanded(
                     child: _buildDropdownField([
                       'SL',
@@ -973,7 +1059,7 @@ class _IvdvState extends State<Ivdv> {
                   ),
                 ],
               ),
-              SizedBox(height: 16), // Space between rows
+              SizedBox(height: 16),
 
               // Second Row
               Row(
@@ -990,46 +1076,59 @@ class _IvdvState extends State<Ivdv> {
                     child: _buildDropdownField([
                       'Yes',
                       'No',
-                    ], "Is the person eligible for antiviral polio treatment? ",
-                        "Is the person eligible for antiviral polio treatment? "),
+                    ], "Is the person eligible for antiviral polio treatment?",
+                        "Is the person eligible for antiviral polio treatment?",
+                        onChanged: (value) {
+                      setState(() {
+                        _specimen = value;
+                      });
+                    }),
                   ),
                 ],
               ),
               SizedBox(height: 16),
 
-              // Third Row
+              // Third Row with conditional display
               Row(
                 children: [
                   Expanded(
                     child: _buildDropdownField([
                       'Yes',
                       'No',
-                    ], "Antiviral treatment requested?  ",
-                        "Antiviral treatment requested?  "),
+                    ], "Antiviral treatment requested?",
+                        "Antiviral treatment requested?", onChanged: (value) {
+                      setState(() {
+                        _antiviralRequested = value;
+                      });
+                    }),
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDateField("If yes, treatment dates: Start",
-                        "If yes, treatment dates: Start"),
-                  ),
+                  if (_antiviralRequested == 'Yes') ...[
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDateField("If yes, treatment dates: Start",
+                          "If yes, treatment dates: Start"),
+                    ),
+                  ],
                 ],
               ),
               SizedBox(height: 16),
 
-              // Fourth Row
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDateField("End date", "End date"),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField("Type of antiviral(specify)",
-                        "Type of antiviral(specify)"),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
+              if (_antiviralRequested == 'Yes') ...[
+                // Fourth Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDateField("End date", "End date"),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextField("Type of antiviral(specify)",
+                          "Type of antiviral(specify)"),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+              ],
 
               // Fifth Row
               Row(
@@ -1039,9 +1138,9 @@ class _IvdvState extends State<Ivdv> {
                       'Fulldose',
                       'partial',
                       'not taken',
-                    ], "Compliance ", "Compliance"),
+                    ], "Compliance", "Compliance"),
                   ),
-                  SizedBox(width: 16), // Space between columns
+                  SizedBox(width: 16),
                   Expanded(
                     child: Container(), // Placeholder for alignment
                   ),
@@ -1054,25 +1153,14 @@ class _IvdvState extends State<Ivdv> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: () {
-                    final ivdvBloc = context.read<
-                        IvdvBloc>(); // Corrected the variable name to start with lowercase
+                    final ivdvBloc = context.read<IvdvBloc>();
 
                     // Trigger the form submission
                     ivdvBloc.add(SubmitForm());
-
-                    // Show a success message using a SnackBar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Submitted successfully'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-
-                    // After submission, navigate to the next page with the form data
                   },
                   child: Text("Submit"),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -1114,19 +1202,50 @@ class _IvdvState extends State<Ivdv> {
   Widget _buildTextField(String labelText, String fieldName,
       {TextInputType keyboardType = TextInputType.text,
       String? Function(String?)? validator}) {
+    final ivdvBloc = context.read<IvdvBloc>();
+    final controller = TextEditingController(
+      text: ivdvBloc.state.fields[fieldName] ?? '',
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
+        controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: labelText,
-          border: OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Color.fromARGB(255, 12, 184, 232),
+              width: 2.0,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: 15.0,
+            horizontal: 12.0,
+          ),
         ),
         validator: validator ?? _validateRequired, // Apply validation
         onChanged: (value) {
-          context.read<IvdvBloc>().add(
-                UpdateField(fieldName, value) as IvdvEvent,
-              );
+          // Update the state only when the value changes
+          ivdvBloc.add(
+            UpdateField(fieldName, value),
+          );
         },
       ),
     );
@@ -1211,6 +1330,9 @@ class _IvdvState extends State<Ivdv> {
     String labelText,
     String fieldName, {
     ValueChanged<String?>? onChanged,
+    String? conditionalField,
+    String? conditionalValue,
+    List<Widget>? additionalWidgets,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1218,60 +1340,74 @@ class _IvdvState extends State<Ivdv> {
         builder: (context, state) {
           final selectedValue = state.fields[fieldName] as String?;
 
-          return DropdownButtonFormField<String>(
-            value: items.contains(selectedValue) ? selectedValue : null,
-            decoration: InputDecoration(
-              labelText: labelText,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color
-                  width: 1.5, // Border width
+          // Check the condition to render additional widgets
+          bool shouldShowAdditionalWidgets = selectedValue == conditionalValue;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                value: items.contains(selectedValue) ? selectedValue : null,
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 15.0,
+                    horizontal: 12.0,
+                  ),
                 ),
+                items: items.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<IvdvBloc>().add(
+                          UpdateField(fieldName, value),
+                        );
+
+                    // Print the selected value to the console
+
+                    if (onChanged != null) {
+                      onChanged(value);
+                    }
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a value';
+                  }
+                  return null;
+                },
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color when enabled
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blue, // Border color when focused
-                  width: 2.0,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                  vertical: 15.0, horizontal: 12.0), // Padding inside the field
-            ),
-            items: items.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style:
-                      TextStyle(fontSize: 16.0), // Font size for dropdown items
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                context.read<IvdvBloc>().add(
-                      UpdateField(fieldName, value) as IvdvEvent,
-                    );
-                if (onChanged != null) {
-                  onChanged(value);
-                }
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a value';
-              }
-              return null;
-            },
+              if (shouldShowAdditionalWidgets && additionalWidgets != null)
+                ...additionalWidgets,
+            ],
           );
         },
       ),

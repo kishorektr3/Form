@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +9,7 @@ import 'package:untitled/staff/typhoid/bloc/typhoid_state.dart';
 
 import '../bloc/typhoid_event.dart';
 
+// ignore: use_key_in_widget_constructors
 class Typhoid extends StatefulWidget {
   @override
   _TyphoidState createState() => _TyphoidState();
@@ -14,6 +17,8 @@ class Typhoid extends StatefulWidget {
 
 class _TyphoidState extends State<Typhoid> {
   final PageController _pageController = PageController();
+  String? _migratoryFamilySelection;
+  String? _othermigratory;
 
   final GlobalKey<FormState> _formKeyPage1 = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyPage2 = GlobalKey<FormState>();
@@ -38,24 +43,18 @@ class _TyphoidState extends State<Typhoid> {
     );
   }
 
+  // ignore: unused_element
   void _submitForm() {
     if (_formKeyPage6.currentState?.validate() ?? false) {
       context.read<TyphoidBloc>().add(SubmitForm());
     }
   }
 
-  void _onSliderChanged(double value) {
-    setState(() {
-      _sliderValue = value;
-      _pageController.jumpToPage(value.toInt());
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent.shade100,
+        backgroundColor: Color.fromARGB(255, 8, 185, 239),
         title: Text('Typhoid'),
         centerTitle: true,
       ),
@@ -64,6 +63,7 @@ class _TyphoidState extends State<Typhoid> {
           _buildSlider(), // Call the separate slider method
           Expanded(
             child: PageView(
+              physics: NeverScrollableScrollPhysics(),
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
@@ -109,22 +109,29 @@ class _TyphoidState extends State<Typhoid> {
       child: SliderTheme(
         data: SliderThemeData(
           activeTrackColor: Colors.blueAccent,
-          inactiveTrackColor: Colors.blueGrey[200],
+          inactiveTrackColor: Colors.grey[300],
           thumbColor: Colors.blueAccent,
           overlayColor: Colors.blueAccent.withOpacity(0.2),
-          trackHeight: 4.0,
-          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
-          overlayShape: RoundSliderOverlayShape(overlayRadius: 24.0),
+          trackHeight: 8.0, // Thicker track to match the design
+          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.0),
+          overlayShape: RoundSliderOverlayShape(overlayRadius: 16.0),
           valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-          valueIndicatorTextStyle: TextStyle(color: Colors.white),
+          valueIndicatorTextStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          trackShape:
+              RoundedRectSliderTrackShape(), // Rounded corners for the track
         ),
         child: Slider(
+          activeColor: Colors.blue,
+          inactiveColor: Colors.grey,
           value: _sliderValue,
           min: 0,
           max: (_totalPages - 1).toDouble(),
           divisions: _totalPages - 1,
-          label: (_sliderValue + 1).toInt().toString(),
-          onChanged: _onSliderChanged,
+          label: '${(_sliderValue * 5 / (_totalPages - 1)).toInt()}',
+          onChanged: (e) {}, // Disable user interaction
         ),
       ),
     );
@@ -198,7 +205,7 @@ class _TyphoidState extends State<Typhoid> {
                   Expanded(
                     child: _buildTextField(
                       "Reported By",
-                      "Reported By",
+                      "Reported by",
                       validator: _validateRequired,
                     ),
                   ),
@@ -290,35 +297,6 @@ class _TyphoidState extends State<Typhoid> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKeyPage1.currentState?.validate() ?? false) {
-                      // Capture the form field values
-                      final dateReported = context
-                          .read<TyphoidBloc>()
-                          .state
-                          .fields['Date Case Reported'];
-                      final reportedBy = context
-                          .read<TyphoidBloc>()
-                          .state
-                          .fields['Reported By'];
-                      final investigatedBy = context
-                          .read<TyphoidBloc>()
-                          .state
-                          .fields['Investigated  By'];
-                      final title =
-                          context.read<TyphoidBloc>().state.fields['Title'];
-
-                      // Store the captured form data in the BLoC
-                      context
-                          .read<TyphoidBloc>()
-                          .add(UpdateField('dateReported', dateReported));
-                      context
-                          .read<TyphoidBloc>()
-                          .add(UpdateField('reportedBy', reportedBy));
-                      context
-                          .read<TyphoidBloc>()
-                          .add(UpdateField('investigatedBy', investigatedBy));
-                      context
-                          .read<TyphoidBloc>()
-                          .add(UpdateField('title', title));
                       // ...add more fields as needed
 
                       _nextPage(); // Navigate to the next page
@@ -342,266 +320,297 @@ class _TyphoidState extends State<Typhoid> {
 
   Widget _buildPage2() {
     return Padding(
-        padding: const EdgeInsets.all(25.0),
-        child: Form(
-          key: _formKeyPage2,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "2. Case Identification",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Patient name",
-                        "patientName",
-                        validator: _validateRequired,
-                      ),
+      padding: const EdgeInsets.all(25.0),
+      child: Form(
+        key: _formKeyPage2,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "2. Case Identification",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Patient name",
+                      "patientName",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Other Given name",
-                        "otherGivenName",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Other Given name",
+                      "otherGivenName",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Father's name",
-                        "fatherName",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Father's name",
+                      "fatherName",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDateField(
-                        "Date of Birth",
-                        "dateOfBirth",
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDateField(
+                      "Date of Birth",
+                      "dateOfBirth",
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Age (Years / Months)",
-                        "age",
-                        keyboardType: TextInputType.number,
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Age (Years / Months)",
+                      "age",
+                      keyboardType: TextInputType.number,
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Tel/Mobile",
-                        "mobile",
-                        keyboardType: TextInputType.number,
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Tel/Mobile",
+                      "mobile",
+                      keyboardType: TextInputType.number,
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Mother's name",
-                        "motherName",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Mother's name",
+                      "motherName",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownField(
-                        ['Male', 'Female'],
-                        "Sex",
-                        "Sex",
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                      ['Male', 'Female'],
+                      "Sex",
+                      "Sex",
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Address",
-                        "address",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Address",
+                      "address",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Landmark",
-                        "landmark",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Landmark",
+                      "landmark",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Planning unit(PHC/UPHC)",
-                        "planningUnit",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Planning unit(PHC/UPHC)",
+                      "planningUnit",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Village/Mohalla",
-                        "villageMohalla",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Village/Mohalla",
+                      "villageMohalla",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "HRA",
-                        "hra",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "HRA",
+                      "hra",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownField(
-                        ['Hindu', 'Muslim', 'Other'],
-                        "Religion",
-                        "Religion",
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                      ['Hindu', 'Muslim', 'Other'],
+                      "Religion",
+                      "Religion",
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Panchayat/Ward No",
-                        "panchayatWardNo",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Panchayat/Ward No",
+                      "panchayatWardNo",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Caste",
-                        "caste",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Caste",
+                      "caste",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "Id No",
-                        "idNo",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "Id No",
+                      "idNo",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        "Block/Urban area",
-                        "blockUrbanArea",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      "Block/Urban area",
+                      "blockUrbanArea",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "District",
-                        "district",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "District",
+                      "district",
+                      validator: _validateRequired,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownField(
-                        ['Urban', 'Rural'],
-                        "Setting",
-                        "setting",
-                      ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                      ['Urban', 'Rural'],
+                      "Setting",
+                      "setting",
                     ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        "State",
-                        "state",
-                        validator: _validateRequired,
-                      ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      "State",
+                      "state",
+                      validator: _validateRequired,
                     ),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        _pageController.previousPage(
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDropdownField(
+                      ['Yes', 'No'],
+                      "Patient belongs to migratory family/community:",
+                      "Patient belongs to migratory family/community:",
+                      onChanged: (value) {
+                        setState(() {
+                          _migratoryFamilySelection = value;
+                        });
                       },
-                      child: Text("Previous"),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKeyPage2.currentState?.validate() ?? false) {
-                          _nextPage(); // Navigate to the next page if validation passes
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('Please fill in all required fields'),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text("Next"),
-                    ),
+                  ),
+                ],
+              ),
+              if (_migratoryFamilySelection == 'Yes') ...[
+                _buildDropdownField(
+                  [
+                    'Slum with migration',
+                    'Nomad',
+                    'Brick Kiln',
+                    'Construction site',
+                    'Others'
                   ],
+                  'Specify',
+                  'Specify where the patient belongs to',
+                  onChanged: (value) {
+                    setState(() {
+                      _othermigratory = value;
+                    });
+                  },
                 ),
+                if (_othermigratory == 'Others')
+                  _buildTextField('Others', 'Specify other migratory details'),
               ],
-            ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Text("Previous"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKeyPage2.currentState?.validate() ?? false) {
+                        _nextPage(); // Navigate to the next page if validation passes
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please fill in all required fields'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text("Next"),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _buildPage3() {
@@ -877,8 +886,6 @@ class _TyphoidState extends State<Typhoid> {
   }
 
   Widget _buildPage5() {
-    String? _antibioticStarted; // State variable for dropdown selection
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(25.0),
@@ -887,9 +894,11 @@ class _TyphoidState extends State<Typhoid> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "7.Contact History",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Center(
+                child: Text(
+                  "7.Contact History",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
               SizedBox(height: 16),
               Row(
@@ -921,9 +930,11 @@ class _TyphoidState extends State<Typhoid> {
                 "If yes, No. of sick contacts in neighbourhood:",
               ),
               SizedBox(height: 16),
-              Text(
-                "9. Specimen Collection:",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Center(
+                child: Text(
+                  "9. Specimen Collection:",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1022,9 +1033,11 @@ class _TyphoidState extends State<Typhoid> {
                 ],
               ),
               SizedBox(height: 16),
-              Text(
-                "10.Active Case Search and Response in Community: Act",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Center(
+                child: Text(
+                  "10.Active Case Search and Response in Community: Act",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
               _buildDateField(
                   "If yes, Date of search", "If yes, Date of search"),
@@ -1115,9 +1128,11 @@ class _TyphoidState extends State<Typhoid> {
               "Final Classification:",
             ),
             SizedBox(height: 16),
-            Text(
-              "12. 60 Day follow-up (telephonic)",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Center(
+              child: Text(
+                "12. 60 Day follow-up (telephonic)",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
             _buildDateField("Date of follow-up", "followUpDate"),
             SizedBox(height: 16),
@@ -1149,9 +1164,11 @@ class _TyphoidState extends State<Typhoid> {
               },
             ),
             SizedBox(height: 16),
-            Text(
-              "13.Travel History 0 to 28",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Center(
+              child: Text(
+                "13.Travel History 0 to 28",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
             BlocBuilder<TyphoidBloc, TyphoidState>(
               builder: (context, state) {
@@ -1179,11 +1196,7 @@ class _TyphoidState extends State<Typhoid> {
                 );
               },
             ),
-            SizedBox(height: 16),
-            Text(
-              "Case definition of suspected typhoid fever:",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+
             SizedBox(height: 16),
             // Add the Submit button at the bottom
             Align(
@@ -1194,21 +1207,21 @@ class _TyphoidState extends State<Typhoid> {
 
                   // Trigger the form submission
                   typhoidBloc.add(SubmitForm());
-
-                  // Show a success message using a SnackBar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Submitted successfully'),
-                      duration: Duration(
-                          seconds: 2), // You can adjust the duration if needed
-                    ),
-                  );
-
-                  // After submission, navigate to the next page with the form data
+                  typhoidBloc.stream.listen((state) {
+                    if (state.fields.isEmpty) {
+                      // Show a success message using a SnackBar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Submitted successfully'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  });
                 },
                 child: Text("Submit"),
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -1233,22 +1246,50 @@ class _TyphoidState extends State<Typhoid> {
     );
   }
 
- 
   Widget _buildTextField(String labelText, String fieldName,
       {TextInputType keyboardType = TextInputType.text,
       String? Function(String?)? validator}) {
+    final controller = TextEditingController(
+      text: context.read<TyphoidBloc>().state.fields[fieldName] ?? '',
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
+        controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: labelText,
-          border: OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Colors.blueGrey,
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(
+              color: Color.fromARGB(255, 12, 184, 232),
+              width: 2.0,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: 15.0,
+            horizontal: 12.0,
+          ),
         ),
         validator: validator ?? _validateRequired, // Apply validation
         onChanged: (value) {
           context.read<TyphoidBloc>().add(
-                UpdateField(fieldName, value) as TyphoidEvent,
+                UpdateField(fieldName, value),
               );
         },
       ),
@@ -1334,6 +1375,9 @@ class _TyphoidState extends State<Typhoid> {
     String labelText,
     String fieldName, {
     ValueChanged<String?>? onChanged,
+    String? conditionalField,
+    String? conditionalValue,
+    List<Widget>? additionalWidgets,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1341,60 +1385,74 @@ class _TyphoidState extends State<Typhoid> {
         builder: (context, state) {
           final selectedValue = state.fields[fieldName] as String?;
 
-          return DropdownButtonFormField<String>(
-            value: items.contains(selectedValue) ? selectedValue : null,
-            decoration: InputDecoration(
-              labelText: labelText,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color
-                  width: 1.5, // Border width
+          // Check the condition to render additional widgets
+          bool shouldShowAdditionalWidgets = selectedValue == conditionalValue;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                value: items.contains(selectedValue) ? selectedValue : null,
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blueGrey,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 15.0,
+                    horizontal: 12.0,
+                  ),
                 ),
+                items: items.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<TyphoidBloc>().add(
+                          UpdateField(fieldName, value),
+                        );
+
+                    // Print the selected value to the console
+
+                    if (onChanged != null) {
+                      onChanged(value);
+                    }
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a value';
+                  }
+                  return null;
+                },
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blueGrey, // Border color when enabled
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Colors.blue, // Border color when focused
-                  width: 2.0,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                  vertical: 15.0, horizontal: 12.0), // Padding inside the field
-            ),
-            items: items.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style:
-                      TextStyle(fontSize: 16.0), // Font size for dropdown items
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                context.read<TyphoidBloc>().add(
-                      UpdateField(fieldName, value) as TyphoidEvent,
-                    );
-                if (onChanged != null) {
-                  onChanged(value);
-                }
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a value';
-              }
-              return null;
-            },
+              if (shouldShowAdditionalWidgets && additionalWidgets != null)
+                ...additionalWidgets,
+            ],
           );
         },
       ),
