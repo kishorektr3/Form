@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:untitled/staff/homepage/bloc_home/bloc.dart';
+import 'package:untitled/staff/homepage/view/DiseaseScreen.dart';
 
 import 'package:untitled/staff/paralysis/bloc_paralysis/bloc.dart';
 import 'package:untitled/staff/paralysis/paralysis.dart';
