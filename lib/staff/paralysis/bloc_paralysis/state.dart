@@ -1,14 +1,22 @@
 import 'package:equatable/equatable.dart';
 
 class ParalysisState extends Equatable {
-  final Map<String, String> fields;
+  final Map<String, dynamic> fields;
+  final String submissionStatus;
 
-  ParalysisState({required this.fields});
+ ParalysisState({required this.fields, this.submissionStatus = ''});
 
-  ParalysisState copyWith({required Map<String, String> fields}) {
-    return ParalysisState(fields: {...this.fields, ...fields});
+ ParalysisState copyWith({
+    Map<String, dynamic>? updatedFields,
+    String? submissionStatus,
+  }) {
+    return ParalysisState(
+      fields: updatedFields ?? this.fields,
+      submissionStatus: submissionStatus ?? this.submissionStatus,
+    );
   }
 
   @override
-  List<Object> get props => [fields];
+  List<Object> get props => [fields, submissionStatus];
 }
+
